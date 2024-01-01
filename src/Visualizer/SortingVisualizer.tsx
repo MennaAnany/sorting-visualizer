@@ -1,62 +1,47 @@
 import React, { FC, useState, useRef } from "react";
 import classes from "./SortingVisualizer.module.css";
 import { bubbleSortSteps } from "../Algorithms/BubbleSort";
+import { mergeSortSteps } from "../Algorithms/MergeSort";
+import { quickSortSteps } from "../Algorithms/QuickSort";
 
-export interface VisualizerProps {}
+interface VisualizerProps {}
 
-const randomNumber = (min: number, max: number) => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
+const Visualizer: FC<VisualizerProps> = () => {
+  const randomNumber = (min: number, max: number) =>
+    Math.floor(Math.random() * (max - min + 1)) + min;
 
-const generateArray = () => {
-  const arr = Array.from({ length: 40 }, () => randomNumber(10, 700));
-  return arr;
-};
+  const generateArray = () =>
+    Array.from({ length: 50 }, () => randomNumber(10, 700));
 
-export const Visualizer: FC<VisualizerProps> = () => {
-  const [array, setArray] = useState(generateArray());
+  const [array, setArray] = useState(generateArray);
   const [isSorting, setIsSorting] = useState(false);
-  const [speed, setSpeed] = useState(50);
+  const [speed, setSpeed] = useState(25);
   const columnsRef = useRef<HTMLDivElement>(null);
 
-  const newArray = () => {
-    setArray(generateArray());
-  };
+  const newArray = () => setArray(generateArray());
 
-  const generateColumns = () => {
-    return array.map((el, i) => (
-      <div
-        key={i}
-        className="column"
-        style={{
-          height: `${el}px`,
-          backgroundColor: "#70587c",
-          width: "28px",
-          marginRight: "1px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          color: "white",
-          transition: "height 0.3s",
-        }}
-      >
-        {el}
-        <div style={{ fontSize: "10px", color: "white" }} />
+  const generateColumns = () =>
+    array.map((el: any, i) => (
+      <div key={i} className={classes.column} style={{ height: `${el}px` }}>
+        <div className={classes.columnContent}>{el}</div>
       </div>
     ));
-  };
 
   const visualizer = async (steps: any) => {
     setIsSorting(true);
+    const columns = columnsRef.current!.children as any;
+
     for (let i = 0; i < steps.length; i++) {
       const { type, indexes } = steps[i];
-      const columns = columnsRef.current?.children as any;
       const [index1, index2] = indexes;
 
       if (type === "COMPARE") {
         columns[index1].style.backgroundColor = "#f783ac";
         columns[index2].style.backgroundColor = "#f783ac";
         await sleep(speed);
+        columns[index1].style.backgroundColor = "#70587c";
+        columns[index2].style.backgroundColor = "#70587c";
+      } else if (type === "DONE") {
         columns[index1].style.backgroundColor = "#70587c";
         columns[index2].style.backgroundColor = "#70587c";
       } else if (type === "SWAP") {
@@ -68,29 +53,59 @@ export const Visualizer: FC<VisualizerProps> = () => {
         swap(index1, index2);
       }
     }
+
     setIsSorting(false);
   };
 
   const swap = (index1: number, index2: number) => {
-    const temp = array[index1];
-    array[index1] = array[index2];
-    array[index2] = temp;
+    [array[index1], array[index2]] = [array[index2], array[index1]];
     setArray([...array]);
   };
 
   const BubbleSort = async () => {
-    let newArr: number[] = [...array];
-    const newSteps = bubbleSortSteps(newArr);
-    await visualizer(newSteps);
-    setArray(newArr);
+    const newArr = [...array];
+    const steps = bubbleSortSteps(newArr);
+    await visualizer(steps);
   };
 
-  const sleep = (duration: number) => {
-    return new Promise<void>((resolve) => setTimeout(resolve, duration));
+  const QuickSortHandler = async () => {
+    const newArr = [...array];
+    const steps = quickSortSteps(newArr, 0, newArr.length - 1);
+    await visualizer(steps);
   };
+
+  const MergeSort = async () => {
+    const newSteps = mergeSortSteps([...array]);
+
+    for (let i = 0; i < newSteps!.length; i++) {
+      const { type, indexes } = newSteps![i];
+      const columns = columnsRef.current!.children as any;
+      const [index1, index2] = indexes;
+
+      if (type === "SWAP") {
+        columns[index1].style.backgroundColor = "#ffd43b";
+        // columns[index2].style.backgroundColor = "#ffd43b";
+        columns[index1].style.height = `${index2}px`;
+        columns[index1].children[0].textContent = index2;
+      } else if (type === "COMPARE") {
+        columns[index1].style.backgroundColor = "#f783ac";
+        columns[index2].style.backgroundColor = "#f783ac";
+      } else if (type === "DONE") {
+        columns[index1].style.backgroundColor = "#70587c";
+        columns[index2].style.backgroundColor = "#70587c";
+      }
+
+      await sleep(speed);
+    }
+
+    setIsSorting(false);
+  };
+
+  const sleep = (duration: number) =>
+    new Promise<void>((resolve) => setTimeout(resolve, duration));
 
   const speedHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSpeed(+e.target.value < 1 ? 1 : +e.target.value);
+    setSpeed(Math.max(1, +e.target.value));
   };
 
   return (
@@ -123,25 +138,28 @@ export const Visualizer: FC<VisualizerProps> = () => {
           >
             Bubble Sort
           </button>
-          <button className={classes.btn} disabled={isSorting}>
+          <button
+            className={classes.btn}
+            onClick={MergeSort}
+            disabled={isSorting}
+          >
             Merge Sort
           </button>
-          <button className={classes.btn} disabled={isSorting}>
+          <button
+            className={classes.btn}
+            onClick={QuickSortHandler}
+            disabled={isSorting}
+          >
             Quick Sort
           </button>
         </div>
       </div>
       <div className={classes.border} />
-      <div
-        ref={columnsRef}
-        style={{
-          display: "flex",
-          paddingLeft: "20px",
-          justifyContent: "center",
-        }}
-      >
+      <div ref={columnsRef} className={classes.columnsContainer}>
         {generateColumns()}
       </div>
     </>
   );
 };
+
+export default Visualizer;

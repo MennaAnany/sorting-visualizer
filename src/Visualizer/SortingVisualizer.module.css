@@ -1,3 +1,7 @@
+.buttonsContainer {
+  background-color: #f0e6ef;
+}
+
 .buttons {
   display: flex;
   justify-content: center;
@@ -7,10 +11,6 @@
 
 .border {
   border-bottom: solid 1px #70587c;
-}
-
-.buttonsContainer {
-  background-color: #f0e6ef;
 }
 
 .btn {
@@ -48,10 +48,31 @@
   margin-right: 0.5rem;
   border-radius: 0.5rem;
   border: none;
-
   padding: 0.2rem;
 }
 
 input:focus {
   outline: solid 1px #70587c;
+}
+
+.columnsContainer {
+  display: flex;
+  padding-left: 20px;
+  justify-content: center;
+}
+
+.column {
+  height: auto;
+  width: 35px;
+  margin-right: 1px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: height 0.3s;
+  background-color: #70587c;
+}
+
+.columnContent {
+  font-size: 15px;
+  color: white;
 }

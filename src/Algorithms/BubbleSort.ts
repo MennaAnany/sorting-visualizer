@@ -15,6 +15,7 @@ const bubbleSort = (
         swap(arr, j, j + 1);
         steps.push({ type: "SWAP", indexes: [j, j + 1] });
       }
+      steps.push({ type: "DONE", indexes: [i, j] });
     }
   }
 };
